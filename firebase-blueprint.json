@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "Post": {
+      "title": "Post",
+      "description": "A generic post for sermons, commentary, life sharing, etc.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Title of the post" },
+        "content": { "type": "string", "description": "Content of the post (Markdown or HTML)" },
+        "category": { "type": "string", "description": "Category within the board (e.g., 'Genesis', 'My Life')" },
+        "authorId": { "type": "string", "description": "UID of the author" },
+        "authorName": { "type": "string", "description": "Display name of the author" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "imageUrl": { "type": "string", "description": "Optional image URL for the post" },
+        "videoUrl": { "type": "string", "description": "Optional video URL (e.g., YouTube) for sermons" },
+        "boardType": { "type": "string", "description": "The menu/board this post belongs to" }
+      },
+      "required": ["title", "content", "authorId", "createdAt", "boardType"]
+    },
+    "PrayerRequest": {
+      "title": "Prayer Request",
+      "description": "A private prayer request submitted by a user.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the requester (or anonymous)" },
+        "contact": { "type": "string", "description": "Optional contact info" },
+        "content": { "type": "string", "description": "The prayer request content" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Submission timestamp" },
+        "userId": { "type": "string", "description": "UID of the user if logged in" }
+      },
+      "required": ["content", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/posts": {
+      "schema": "Post",
+      "description": "Collection for all board posts"
+    },
+    "/prayer_requests": {
+      "schema": "PrayerRequest",
+      "description": "Collection for private prayer requests"
+    }
+  }
+}

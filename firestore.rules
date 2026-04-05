@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: posts
+    // Fields:
+    //   - title: string (required)
+    //   - content: string (required)
+    //   - category: string
+    //   - authorId: string (required)
+    //   - authorName: string
+    //   - createdAt: timestamp (required)
+    //   - imageUrl: string
+    //   - videoUrl: string
+    //   - boardType: string (required)
+    //
+    // Collection: prayer_requests
+    // Fields:
+    //   - name: string
+    //   - contact: string
+    //   - content: string (required)
+    //   - createdAt: timestamp (required)
+    //   - userId: string
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        (request.auth.token.email == "allplaces91@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidPost(data) {
+      return data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 10000 &&
+             data.boardType is string && data.authorId is string;
+    }
+
+    function isValidPrayerRequest(data) {
+      return data.content is string && data.content.size() > 0 && data.content.size() < 5000;
+    }
+
+    // Rules for posts
+    match /posts/{postId} {
+      allow read: if true; // Publicly readable
+      allow create: if isAdmin() && isValidPost(request.resource.data);
+      allow update: if isAdmin() && isValidPost(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Rules for prayer_requests
+    match /prayer_requests/{requestId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create: if isValidPrayerRequest(request.resource.data); // Anyone can submit
+      allow update, delete: if isAdmin();
+    }
+
+    // Rules for users (for roles)
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}
